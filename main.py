@@ -26,7 +26,7 @@ def initialize_database():
         cursor = connection.cursor()
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS Users (
+            CREATE TABLE IF NOT EXISTS Users2 (
                 id INT PRIMARY KEY,
                 name VARCHAR(100) NOT NULL
             )
