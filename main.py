@@ -74,7 +74,14 @@ def add_user():
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Home (
+                home_id INT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL
+            )
+        """)
+
         cursor.execute("INSERT INTO Users (id, name) VALUES (%s, %s)", (user_id, name))
         connection.commit()
         
@@ -85,5 +92,4 @@ def add_user():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    initialize_database()  # Ensure the Users table exists before running the app
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
