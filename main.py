@@ -20,23 +20,22 @@ def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 def initialize_database():
-    """Create a sample table if it does not exist."""
+    """Create the Users table if it does not exist."""
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
 
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS SampleTable (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            CREATE TABLE IF NOT EXISTS Users (
+                id INT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL
             )
         """)
 
         connection.commit()
         cursor.close()
         connection.close()
-        print("Database initialized: SampleTable created (if not exists)")
+        print("Database initialized: Users table created (if not exists)")
     except Exception as e:
         print("Error initializing database:", e)
 
@@ -60,6 +59,31 @@ def hello():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    if request.headers.get('X-API-KEY') != API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
+    user_id = data.get('id')
+    name = data.get('name')
+
+    if not user_id or not name:
+        return jsonify({"error": "Missing id or name"}), 400
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        
+        cursor.execute("INSERT INTO Users (id, name) VALUES (%s, %s)", (user_id, name))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        return jsonify({"message": "User added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
-    initialize_database()  # Ensure the table exists before running the app
+    initialize_database()  # Ensure the Users table exists before running the app
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
