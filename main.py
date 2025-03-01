@@ -202,5 +202,31 @@ def get_default_home(homeowner_id):
     else:
         return jsonify({'message': 'No default home found'}), 404
 
+@app.route('/sqlQuery', methods=['POST'])
+def sql_query():
+    if request.headers.get('X-API-KEY') != API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
+    query = data.get("query", "").strip()
+
+    # Basic security check: Only allow SELECT statements
+    if not query.lower().startswith("select"):
+        return jsonify({"error": "Only SELECT queries are allowed."}), 400
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        cursor.close()
+        connection.close()
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
