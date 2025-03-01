@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import mysql.connector
 
 app = Flask(__name__)
@@ -12,11 +12,19 @@ db_config = {
     'database': os.getenv('MYSQLDATABASE'),
     'port': int(os.getenv('MYSQLPORT', 3306))  # Convert port to integer
 }
+
+# API Key (store this in your environment variables)
+API_KEY = os.getenv('API_KEY')
+
 def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 @app.route('/')
 def hello():
+    # Check for API key in the request headers
+    if request.headers.get('X-API-KEY') != API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
     try:
         # Connect to the database
         connection = get_db_connection()
