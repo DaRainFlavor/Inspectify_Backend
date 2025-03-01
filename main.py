@@ -19,6 +19,27 @@ API_KEY = os.getenv('API_KEY')
 def get_db_connection():
     return mysql.connector.connect(**db_config)
 
+def initialize_database():
+    """Create a sample table if it does not exist."""
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS SampleTable (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        print("Database initialized: SampleTable created (if not exists)")
+    except Exception as e:
+        print("Error initializing database:", e)
+
 @app.route('/')
 def hello():
     # Check for API key in the request headers
@@ -26,22 +47,19 @@ def hello():
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
-        # Connect to the database
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
 
-        # Fetch all rows from the Users table
         cursor.execute("SELECT * FROM Users")
         users = cursor.fetchall()
 
-        # Close the connection
         cursor.close()
         connection.close()
 
-        # Return the data as JSON
         return jsonify(users)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.getenv('PORT', 5000))
+    initialize_database()  # Ensure the table exists before running the app
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
