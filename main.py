@@ -6,13 +6,12 @@ app = Flask(__name__)
 
 # Database configuration
 db_config = {
-    'host': os.getenv('DB_HOST'),  # Railway provides this as an environment variable
-    'user': os.getenv('DB_USER'),  # Railway provides this as an environment variable
-    'password': os.getenv('DB_PASSWORD'),  # Railway provides this as an environment variable
-    'database': os.getenv('DB_NAME'),  # Railway provides this as an environment variable
-    'port': os.getenv('DB_PORT', 3306)  # Default MySQL port is 3306
+    'host': os.getenv('MYSQLHOST'),  # Matches Railway variable name
+    'user': os.getenv('MYSQLUSER'),
+    'password': os.getenv('MYSQLPASSWORD'),
+    'database': os.getenv('MYSQLDATABASE'),
+    'port': int(os.getenv('MYSQLPORT', 3306))  # Convert port to integer
 }
-
 def get_db_connection():
     return mysql.connector.connect(**db_config)
 
